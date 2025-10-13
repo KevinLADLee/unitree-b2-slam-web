@@ -10,6 +10,10 @@ import type {
   NavigationTask,
   CurrentPosition,
   TopologyMap,
+  OccupancyGrid,
+  LaserScan,
+  Odometry,
+  Trajectory,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -100,6 +104,20 @@ export const taskAPI = {
     apiClient.put<Feedback>(`/task/${taskId}`, task),
   delete: (taskId: string) => apiClient.delete<Feedback>(`/task/${taskId}`),
   execute: (taskId: string) => apiClient.post<Feedback>(`/task/${taskId}/execute`),
+};
+
+// ==================== ROS 模拟 API ====================
+
+export const rosSimAPI = {
+  getMap: () => apiClient.get<OccupancyGrid>('/ros/map'),
+  getScan: () => apiClient.get<LaserScan>('/ros/scan'),
+  getOdom: () => apiClient.get<Odometry>('/ros/odom'),
+  simulateMotion: (linear: number, angular: number, dt = 0.1) =>
+    apiClient.post('/ros/simulate-motion', null, {
+      params: { linear, angular, dt },
+    }),
+  getTrajectory: () => apiClient.get<Trajectory>('/ros/trajectory'),
+  resetPose: () => apiClient.post('/ros/reset-pose'),
 };
 
 export default apiClient;

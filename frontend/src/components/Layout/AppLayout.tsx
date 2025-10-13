@@ -13,6 +13,7 @@ import {
 import MappingTab from '../MappingTab';
 import RelocalizationTab from '../RelocalizationTab';
 import TopologyAndTaskTab from '../TopologyAndTaskTab';
+import VisualizationTab from '../VisualizationTab';
 import StatusTab from '../StatusTab';
 
 export default function AppLayout() {
@@ -96,6 +97,7 @@ export default function AppLayout() {
             <Tab label="建图" />
             <Tab label="重定位" />
             <Tab label="拓扑与任务" />
+            <Tab label="可视化" />
             <Tab label="状态" />
           </Tabs>
         </Container>
@@ -119,7 +121,10 @@ export default function AppLayout() {
           {tabValue === 2 && <TopologyAndTaskTab />}
         </Box>
         <Box role="tabpanel" hidden={tabValue !== 3}>
-          {tabValue === 3 && <StatusTab />}
+          {tabValue === 3 && <VisualizationTab />}
+        </Box>
+        <Box role="tabpanel" hidden={tabValue !== 4}>
+          {tabValue === 4 && <StatusTab />}
         </Box>
       </Container>
 

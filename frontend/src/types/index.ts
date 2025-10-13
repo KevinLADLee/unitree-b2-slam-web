@@ -88,3 +88,92 @@ export const SystemStateNames: Record<number, string> = {
   5: '定位完成',
   6: '导航节点开启',
 };
+
+// ==================== ROS Message Types ====================
+
+export interface ROSHeader {
+  seq: number;
+  stamp: number;
+  frame_id: string;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Orientation {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+export interface Pose {
+  position: Position;
+  orientation: Orientation;
+}
+
+export interface PoseWithCovariance {
+  pose: Pose;
+  covariance: number[];
+}
+
+export interface Twist {
+  linear: Position;
+  angular: Position;
+}
+
+export interface TwistWithCovariance {
+  twist: Twist;
+  covariance: number[];
+}
+
+// OccupancyGrid (nav_msgs/OccupancyGrid)
+export interface OccupancyGrid {
+  header: ROSHeader;
+  info: MapMetaData;
+  data: number[];  // -1=unknown, 0-100=probability
+}
+
+export interface MapMetaData {
+  map_load_time: number;
+  resolution: number;
+  width: number;
+  height: number;
+  origin: Pose;
+}
+
+// LaserScan (sensor_msgs/LaserScan)
+export interface LaserScan {
+  header: ROSHeader;
+  angle_min: number;
+  angle_max: number;
+  angle_increment: number;
+  time_increment: number;
+  scan_time: number;
+  range_min: number;
+  range_max: number;
+  ranges: number[];
+  intensities: number[];
+}
+
+// Odometry (nav_msgs/Odometry)
+export interface Odometry {
+  header: ROSHeader;
+  child_frame_id: string;
+  pose: PoseWithCovariance;
+  twist: TwistWithCovariance;
+}
+
+// Trajectory Point
+export interface TrajectoryPoint {
+  x: number;
+  y: number;
+}
+
+export interface Trajectory {
+  points: TrajectoryPoint[];
+  count: number;
+}

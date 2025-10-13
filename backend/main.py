@@ -4,6 +4,7 @@ FastAPI 后端服务 - Unitree B2 SLAM Web UI
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from simulator import SimpleUnitreeSimulator
+from ros_simulator import ROSMessageSimulator
 from models import (
     Node, Edge, PoseInput, NavigationTarget, NavigationTargets,
     WaypointsFile, Feedback, NavigationTask, CurrentPosition, TopologyMap
@@ -28,6 +29,7 @@ app.add_middleware(
 
 # 初始化模拟器
 simulator = SimpleUnitreeSimulator()
+ros_sim = ROSMessageSimulator()
 
 
 # ==================== 建图接口 ====================
@@ -290,6 +292,75 @@ async def execute_task(task_id: str):
     """执行导航任务"""
     seq = simulator._generate_seq()
     return simulator.execute_task(seq, task_id)
+
+
+# ==================== ROS消息模拟接口 ====================
+
+@app.get("/api/ros/map", tags=["ROS Simulation"])
+async def get_occupancy_grid():
+    """获取OccupancyGrid地图消息 (ROS2格式)"""
+    return ros_sim.get_map_message()
+
+
+@app.get("/api/ros/scan", tags=["ROS Simulation"])
+async def get_laser_scan():
+    """获取LaserScan激光扫描消息 (ROS2格式)"""
+    # 每次请求重新生成激光数据以模拟真实扫描
+    ros_sim.laser_scan = ros_sim.laser_scan.__class__()
+    return ros_sim.get_scan_message()
+
+
+@app.get("/api/ros/odom", tags=["ROS Simulation"])
+async def get_odometry():
+    """获取Odometry里程计消息 (ROS2格式)"""
+    return ros_sim.get_odom_message()
+
+
+@app.post("/api/ros/simulate-motion", tags=["ROS Simulation"])
+async def simulate_motion(linear: float = 0.0, angular: float = 0.0, dt: float = 0.1):
+    """
+    模拟机器人运动
+
+    - linear: 线速度 (m/s)
+    - angular: 角速度 (rad/s)
+    - dt: 时间增量 (秒)
+    """
+    ros_sim.simulate_motion(linear, angular, dt)
+    return {
+        "success": True,
+        "current_pose": {
+            "x": ros_sim.odometry.x,
+            "y": ros_sim.odometry.y,
+            "yaw": ros_sim.odometry.yaw
+        },
+        "velocities": {
+            "linear": ros_sim.odometry.linear_velocity,
+            "angular": ros_sim.odometry.angular_velocity
+        }
+    }
+
+
+@app.get("/api/ros/trajectory", tags=["ROS Simulation"])
+async def get_trajectory():
+    """获取机器人运动轨迹"""
+    return {
+        "points": [{"x": x, "y": y} for x, y in ros_sim.trajectory],
+        "count": len(ros_sim.trajectory)
+    }
+
+
+@app.post("/api/ros/reset-pose", tags=["ROS Simulation"])
+async def reset_pose():
+    """重置机器人位姿到原点"""
+    ros_sim.reset_pose()
+    return {
+        "success": True,
+        "pose": {
+            "x": 0.0,
+            "y": 0.0,
+            "yaw": 0.0
+        }
+    }
 
 
 @app.get("/", tags=["Root"])
