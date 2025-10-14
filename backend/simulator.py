@@ -41,10 +41,20 @@ class SimpleUnitreeSimulator:
 
     # ========== SLAM 建图 ==========
 
-    def start_mapping(self, seq: str) -> Feedback:
-        """开始建图 (command: 3)"""
+    def start_mapping(self, seq: str, pcdmap_index: List[int] = None) -> Feedback:
+        """
+        开始建图 (command: 3)
+
+        Args:
+            seq: 命令序列号
+            pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+        """
         self.state = SystemState.MAPPING
-        return self._create_feedback(seq, True, "Mapping started successfully")
+        if pcdmap_index:
+            notice = f"Mapping started with pcdmap_index: {pcdmap_index}"
+        else:
+            notice = "Mapping started successfully"
+        return self._create_feedback(seq, True, notice)
 
     def stop_mapping(self, seq: str) -> Feedback:
         """停止建图 (command: 4)"""
@@ -53,15 +63,32 @@ class SimpleUnitreeSimulator:
 
     # ========== 重定位 ==========
 
-    def start_relocalization(self, seq: str) -> Feedback:
-        """开始重定位 (command: 6)"""
-        self.state = SystemState.RELOCATION_OPEN
-        return self._create_feedback(seq, True, "Relocalization started")
+    def start_relocalization(self, seq: str, pcdmap_index: List[int] = None) -> Feedback:
+        """
+        开始重定位 (command: 6)
 
-    def init_relocalization(self, seq: str, x: float, y: float, yaw: float) -> Feedback:
-        """重定位初始化 (command: 7)"""
+        Args:
+            seq: 命令序列号
+            pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+        """
+        self.state = SystemState.RELOCATION_OPEN
+        if pcdmap_index:
+            notice = f"Relocalization started with pcdmap_index: {pcdmap_index}"
+        else:
+            notice = "Relocalization started"
+        return self._create_feedback(seq, True, notice)
+
+    def init_relocalization(self, seq: str, pcdmap_index: List[int], x: float, y: float, yaw: float) -> Feedback:
+        """
+        重定位初始化 (command: 7)
+
+        Args:
+            seq: 命令序列号
+            pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+            x, y, yaw: 初始位姿
+        """
         self.state = SystemState.LOCALIZATION_COMPLETE
-        notice = f"Relocalization initialized at x={x:.2f}, y={y:.2f}, yaw={yaw:.2f}"
+        notice = f"Relocalization initialized at x={x:.2f}, y={y:.2f}, yaw={yaw:.2f} with pcdmap_index: {pcdmap_index}"
         return self._create_feedback(seq, True, notice)
 
     # ========== 导航 ==========

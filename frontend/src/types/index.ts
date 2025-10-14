@@ -69,6 +69,26 @@ export interface TopologyMap {
   metadata?: Record<string, any>;
 }
 
+// ==================== Configuration Types ====================
+
+export interface MappingConfig {
+  pcdmap_index: number[];
+}
+
+export interface RelocalizationConfig {
+  pcdmap_index: number[];
+  x?: number;
+  y?: number;
+  yaw?: number;
+}
+
+export interface VisualizationConfig {
+  map_topic: string;
+  scan_topic: string;
+  odom_topic: string;
+  use_sim_time: boolean;
+}
+
 export enum SystemState {
   IDLE = 0,
   ERROR = -1,

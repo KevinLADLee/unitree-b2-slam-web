@@ -15,6 +15,7 @@ import RelocalizationTab from '../RelocalizationTab';
 import TopologyAndTaskTab from '../TopologyAndTaskTab';
 import VisualizationTab from '../VisualizationTab';
 import StatusTab from '../StatusTab';
+import GlobalStatusIndicator from '../GlobalStatusIndicator';
 
 export default function AppLayout() {
   const [tabValue, setTabValue] = useState(0);
@@ -35,7 +36,7 @@ export default function AppLayout() {
         }}
       >
         <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
             <Typography
               variant="h6"
               sx={{
@@ -58,6 +59,7 @@ export default function AppLayout() {
               SLAM 导航控制系统
             </Typography>
           </Box>
+          <GlobalStatusIndicator />
         </Toolbar>
       </AppBar>
 

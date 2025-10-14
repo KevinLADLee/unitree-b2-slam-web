@@ -7,7 +7,8 @@ from simulator import SimpleUnitreeSimulator
 from ros_simulator import ROSMessageSimulator
 from models import (
     Node, Edge, PoseInput, NavigationTarget, NavigationTargets,
-    WaypointsFile, Feedback, NavigationTask, CurrentPosition, TopologyMap
+    WaypointsFile, Feedback, NavigationTask, CurrentPosition, TopologyMap,
+    MappingConfig, RelocalizationConfig
 )
 import json
 from typing import List
@@ -35,10 +36,15 @@ ros_sim = ROSMessageSimulator()
 # ==================== 建图接口 ====================
 
 @app.post("/api/mapping/start", response_model=Feedback, tags=["Mapping"])
-async def start_mapping():
-    """开始 SLAM 建图 (Command: 3)"""
+async def start_mapping(config: MappingConfig = MappingConfig()):
+    """
+    开始 SLAM 建图 (Command: 3)
+
+    参数:
+    - pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+    """
     seq = simulator._generate_seq()
-    return simulator.start_mapping(seq)
+    return simulator.start_mapping(seq, config.pcdmap_index)
 
 
 @app.post("/api/mapping/stop", response_model=Feedback, tags=["Mapping"])
@@ -51,17 +57,30 @@ async def stop_mapping():
 # ==================== 重定位接口 ====================
 
 @app.post("/api/reloc/start", response_model=Feedback, tags=["Relocalization"])
-async def start_relocalization():
-    """开始重定位 (Command: 6)"""
+async def start_relocalization(config: RelocalizationConfig = RelocalizationConfig()):
+    """
+    开始重定位 (Command: 6)
+
+    参数:
+    - pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+    """
     seq = simulator._generate_seq()
-    return simulator.start_relocalization(seq)
+    return simulator.start_relocalization(seq, config.pcdmap_index)
 
 
 @app.post("/api/reloc/init", response_model=Feedback, tags=["Relocalization"])
-async def init_relocalization(pose: PoseInput):
-    """重定位初始化 - 设置初始位姿 (Command: 7)"""
+async def init_relocalization(config: RelocalizationConfig):
+    """
+    重定位初始化 - 设置初始位姿 (Command: 7)
+
+    参数:
+    - pcdmap_index: 点云地图索引列表 (sequence<unsigned short>)
+    - x, y, yaw: 初始位姿
+    """
     seq = simulator._generate_seq()
-    return simulator.init_relocalization(seq, pose.x, pose.y, pose.yaw)
+    if config.x is None or config.y is None or config.yaw is None:
+        raise HTTPException(status_code=400, detail="x, y, yaw are required for initialization")
+    return simulator.init_relocalization(seq, config.pcdmap_index, config.x, config.y, config.yaw)
 
 
 # ==================== 导航接口 ====================

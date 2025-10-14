@@ -15,35 +15,36 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { statusAPI } from '../../services/api';
+import { useSystemStatus } from '../../contexts/SystemStatusContext';
 import type { Feedback } from '../../types';
 
 export default function StatusTab() {
+  const { systemStatus, refetch } = useSystemStatus();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [systemStatus, setSystemStatus] = useState<Feedback | null>(null);
   const [feedbackHistory, setFeedbackHistory] = useState<Feedback[]>([]);
 
-  const loadStatus = async () => {
+  const loadFeedbackHistory = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [statusRes, historyRes] = await Promise.all([
-        statusAPI.getStatus(),
-        statusAPI.getFeedback(),
-      ]);
-      setSystemStatus(statusRes.data);
+      const historyRes = await statusAPI.getFeedback();
       setFeedbackHistory(historyRes.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载状态失败');
+      setError(err instanceof Error ? err.message : '加载反馈历史失败');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([refetch(), loadFeedbackHistory()]);
+  };
+
   useEffect(() => {
-    loadStatus();
-    // 自动刷新间隔 (每5秒)
-    const interval = setInterval(loadStatus, 5000);
+    loadFeedbackHistory();
+    // 自动刷新反馈历史间隔 (每5秒)
+    const interval = setInterval(loadFeedbackHistory, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -97,7 +98,7 @@ export default function StatusTab() {
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
-          onClick={loadStatus}
+          onClick={handleRefresh}
           disabled={loading}
         >
           刷新

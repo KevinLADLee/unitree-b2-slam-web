@@ -8,7 +8,12 @@ import {
   Stack,
   Alert,
   CircularProgress,
+  TextField,
+  Chip,
+  IconButton,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { mappingAPI } from '../../services/api';
 import type { Feedback } from '../../types';
 
@@ -16,12 +21,26 @@ export default function MappingTab() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pcdmapIndices, setPcdmapIndices] = useState<number[]>([]);
+  const [newIndex, setNewIndex] = useState<string>('');
+
+  const handleAddIndex = () => {
+    const value = parseInt(newIndex, 10);
+    if (!isNaN(value) && value >= 0 && value <= 65535) {
+      setPcdmapIndices([...pcdmapIndices, value]);
+      setNewIndex('');
+    }
+  };
+
+  const handleRemoveIndex = (index: number) => {
+    setPcdmapIndices(pcdmapIndices.filter((_, i) => i !== index));
+  };
 
   const handleStartMapping = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await mappingAPI.start();
+      const response = await mappingAPI.start({ pcdmap_index: pcdmapIndices });
       setFeedback(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '请求失败');
@@ -60,6 +79,66 @@ export default function MappingTab() {
       </Typography>
 
       <Stack spacing={3}>
+        {/* PCD Map Index 配置 */}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              点云地图索引配置
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
+              添加点云地图索引 (0-65535)，用于 qtcommand 通信协议
+            </Typography>
+
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <TextField
+                size="small"
+                type="number"
+                label="索引值"
+                value={newIndex}
+                onChange={(e) => setNewIndex(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddIndex();
+                  }
+                }}
+                inputProps={{ min: 0, max: 65535 }}
+                sx={{ width: 150 }}
+              />
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={handleAddIndex}
+                disabled={!newIndex || isNaN(parseInt(newIndex, 10))}
+              >
+                添加
+              </Button>
+            </Stack>
+
+            {pcdmapIndices.length > 0 && (
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {pcdmapIndices.map((value, index) => (
+                  <Chip
+                    key={index}
+                    label={value}
+                    onDelete={() => handleRemoveIndex(index)}
+                    deleteIcon={<DeleteIcon />}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontFamily: 'monospace' }}
+                  />
+                ))}
+              </Stack>
+            )}
+
+            {pcdmapIndices.length === 0 && (
+              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                当前无索引（将使用默认配置）
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+
         {/* 控制按钮 */}
         <Card>
           <CardContent>

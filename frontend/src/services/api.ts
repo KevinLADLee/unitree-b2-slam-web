@@ -14,6 +14,9 @@ import type {
   LaserScan,
   Odometry,
   Trajectory,
+  MappingConfig,
+  RelocalizationConfig,
+  VisualizationConfig,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -29,15 +32,18 @@ const apiClient = axios.create({
 // ==================== 建图 API ====================
 
 export const mappingAPI = {
-  start: () => apiClient.post<Feedback>('/mapping/start'),
+  start: (config?: MappingConfig) =>
+    apiClient.post<Feedback>('/mapping/start', config || { pcdmap_index: [] }),
   stop: () => apiClient.post<Feedback>('/mapping/stop'),
 };
 
 // ==================== 重定位 API ====================
 
 export const relocalizationAPI = {
-  start: () => apiClient.post<Feedback>('/reloc/start'),
-  init: (pose: PoseInput) => apiClient.post<Feedback>('/reloc/init', pose),
+  start: (config?: RelocalizationConfig) =>
+    apiClient.post<Feedback>('/reloc/start', config || { pcdmap_index: [] }),
+  init: (config: RelocalizationConfig) =>
+    apiClient.post<Feedback>('/reloc/init', config),
 };
 
 // ==================== 导航 API ====================

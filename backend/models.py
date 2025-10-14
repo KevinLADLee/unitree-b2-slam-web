@@ -101,3 +101,24 @@ class TopologyMap(BaseModel):
     edges: List[Edge]
     metadata: Optional[dict] = None
 
+
+class MappingConfig(BaseModel):
+    """建图配置"""
+    pcdmap_index: List[int] = Field(default_factory=list, description="点云地图索引列表 (sequence<unsigned short>)")
+
+
+class RelocalizationConfig(BaseModel):
+    """重定位配置"""
+    pcdmap_index: List[int] = Field(default_factory=list, description="点云地图索引列表 (sequence<unsigned short>)")
+    x: Optional[float] = None
+    y: Optional[float] = None
+    yaw: Optional[float] = None
+
+
+class VisualizationConfig(BaseModel):
+    """2D 地图可视化配置"""
+    map_topic: str = Field(default="/map", description="OccupancyGrid 地图 topic")
+    scan_topic: str = Field(default="/scan", description="LaserScan 激光扫描 topic")
+    odom_topic: str = Field(default="/odom", description="Odometry 里程计 topic")
+    use_sim_time: bool = Field(default=False, description="是否使用仿真时间")
+
